@@ -1,0 +1,8 @@
+services:
+  - name: sshd.service
+    type: system
+    keywords: ["Failed", "Disconnected", "error"]
+
+  - name: test_echo.service
+    type: system 
+    keywords: ["Error","Alert"]

@@ -1,0 +1,4 @@
+/target
+.env
+stub/test_echo.service
+memo

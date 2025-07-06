@@ -1,0 +1,9 @@
+[Unit]
+Description=Test Echo Service for Rust Journal Monitor
+
+[Service]
+ExecStart=[test_echo.sh absolute path]
+Restart=always
+
+[Install]
+WantedBy=default.target
