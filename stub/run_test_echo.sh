@@ -5,7 +5,7 @@ if [ $1 == "-u" ]; then
     systemctl --user daemon-reload
     systemctl --user enable --now test_echo.service
 else
-    cp -f test_echo.service /etc/systemd/system//test_echo.service
+    cp -f test_echo.service /etc/systemd/system/test_echo.service
 fi
 chmod +x test_echo.sh
 

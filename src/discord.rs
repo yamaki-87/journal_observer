@@ -1,12 +1,12 @@
 use log::{error, info};
+use reqwest::Client;
 
 const DISCORD_SUCCESS_CODE: &str = "204";
 
-pub fn notify_discord(webhock_url: &str, msg: &str) {
-    let client = reqwest::blocking::Client::new();
+pub async fn notify_discord(webhock_url: &str, msg: &str) {
+    let client = Client::new();
     let payload = serde_json::json!({"content":msg});
-
-    let res = client.post(webhock_url).json(&payload).send();
+    let res = client.post(webhock_url).json(&payload).send().await;
     match res {
         Ok(resp) => {
             let status = resp.status();
