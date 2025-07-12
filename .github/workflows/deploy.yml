@@ -1,0 +1,63 @@
+name: Deploy journal_observer to VPS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Set up Rust
+        uses: actions/setup-rust@v1
+        with:
+          rust-version: stable
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4 # Cargoの依存関係をキャッシュ
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }} # OSとCargo.lockのハッシュでキャッシュキーを生成
+          restore-keys: |
+            ${{ runner.os }}-cargo- # 以前のキャッシュも試す
+
+      - name: 📦 Build Journal_Observer binary
+        run: |
+          cargo build --release
+
+      - name: 🔐 Setup SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > key.pem
+          chmod 600 key.pem
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # 二重起動チェック
+      - name: 🛑 Stop service if exists
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} <<'EOF'
+          if systemctl list-units --full -all | grep -Fq 'journal_observer.service'; then
+              echo "Stopping journal_observer.service..."
+              sudo systemctl stop journal_observer
+          else
+              echo "journal_observer.service not found. Skipping stop."
+          fi
+          EOF
+
+      - name: 🚀 Deploy to VPS
+        run: |
+          scp -i key.pem -o StrictHostKeyChecking=no journal_observer ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/journal_observer/journal_observer
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} <<'EOF'
+          mkdir -p /opt/journal_observer/config
+          sudo systemctl daemon-reload
+          sudo systemctl restart journal_observer
+          EOF
