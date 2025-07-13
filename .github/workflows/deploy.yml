@@ -60,7 +60,7 @@ jobs:
 
       - name: 🚀 Deploy to VPS
         run: |
-          scp -i key.pem -o StrictHostKeyChecking=no journal_observer ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/journal_observer/journal_observer
+          scp -i key.pem -o StrictHostKeyChecking=no target/release/journal_observer ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/journal_observer/journal_observer
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} <<'EOF'
           mkdir -p /opt/journal_observer/config
           sudo systemctl daemon-reload
